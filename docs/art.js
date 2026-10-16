@@ -1,67 +1,8 @@
-// キャラクターデザイン: 種族(family)ごとに固有デザインをSVGで描き、段階(進化/強化)で装飾が増える
-// 各デザインは (p, lv) -> { b: 本体SVG, e: [目のx, y, 間隔] } を返す。eの間隔0は一つ目/目なし(別途描画)
-const S = 'stroke="#222" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"';
-const T = 'stroke="#222" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" fill="none"';
-const el = (x, y, rx, ry, f) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${f}" ${S}/>`;
-const ci = (x, y, r, f, s = S) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" ${s}/>`;
-const pa = (d, f) => `<path d="${d}" fill="${f}" ${S}/>`;
-const ln = (d, w = 3, c = '#222') => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
-const dots = (arr, r, f) => arr.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}"/>`).join('');
-const rep = (n, f) => Array.from({ length: n }, (_, i) => f(i)).join('');
-
-const DESIGNS = {
-  // ---- 味方 ----
-  '好気性細菌': (p, lv) => ({ b: el(50, 54, 38, 27, p.c) + ln('M20 40Q30 36 40 40', 3, p.l) + rep(2 + lv, i => ln(`M${30 + i * 14} 80v8`, 4)) + `<text x="50" y="36" font-size="14" text-anchor="middle" fill="${p.l}" stroke="#222" stroke-width="1">O₂</text>`, e: [50, 56, 22] }),
-  'バチルス': (p, lv) => ({ b: `<rect x="8" y="34" width="84" height="40" rx="20" fill="${p.c}" ${S}/>` + el(50, 54, 16, 12, p.l) + ln('M50 46v16M42 54h16', 3, p.d) + (lv ? pa('M62 30L72 22L80 32Z', p.d) : ''), e: [28, 52, 10] }),
-  'シュードモナス': (p, lv) => ({ b: pa('M12 56Q14 28 46 28Q80 26 88 52Q80 78 46 78Q14 80 12 56Z', p.c) + ln('M88 52Q98 44 96 34M88 52Q98 62 98 72', 3) + dots([[40, 70], [56, 72], [66, 62]], 4, p.a) + ci(70, 40, 5, p.l), e: [38, 50, 18] }),
-  '硝化菌': (p, lv) => ({ b: ci(50, 54, 30, p.c) + `<text x="50" y="92" font-size="14" text-anchor="middle" fill="${p.d}" stroke="#fff" stroke-width="3" paint-order="stroke">NH₄</text>` + pa('M50 12Q64 28 50 36Q36 28 50 12Z', p.a) + ln('M22 40Q12 30 18 20M78 40Q88 30 82 20', 3), e: [50, 56, 22] }),
-  '脱窒菌': (p, lv) => ({ b: el(44, 56, 30, 26, p.c) + rep(3 + lv, i => ci(78 + (i % 2) * 8, 20 + i * 14, 6 - i * .5, '#fff', 'stroke="#222" stroke-width="2"')) + `<rect x="72" y="46" width="16" height="10" rx="3" fill="${p.d}" ${S}/>`, e: [40, 54, 20] }),
-  'リン蓄積菌': (p, lv) => ({ b: el(50, 56, 38, 30, p.c) + rep(3 + lv, i => ci(30 + i * 14, 72 - (i % 2) * 6, 6, p.a, 'stroke="#222" stroke-width="2"')) + `<text x="50" y="30" font-size="15" text-anchor="middle" fill="#fff" stroke="#222" stroke-width="1.5">P</text>`, e: [50, 52, 22] }),
-  'ツリガネムシ': (p, lv) => ({ b: ln('M50 94Q34 80 52 66Q66 56 50 44', 5, '#222') + ln('M50 94Q34 80 52 66Q66 56 50 44', 2, p.l) + pa('M14 40Q14 6 50 6Q86 6 86 40Q86 46 50 46Q14 46 14 40Z', p.c) + ln('M14 40Q30 52 50 44Q70 52 86 40', 3, '#222') + rep(5, i => `<path d="M${22 + i * 14} 46v6" stroke="${p.d}" stroke-width="3" stroke-linecap="round"/>`), e: [50, 26, 26] }),
-  'アメーバ': (p, lv) => ({ b: pa('M16 58Q6 34 32 28Q46 10 66 26Q94 26 86 54Q98 78 66 80Q46 92 26 78Q8 74 16 58Z', p.c) + ci(66, 62, 7, p.d, 'stroke="#222" stroke-width="2"') + dots([[28, 70], [74, 40]], 3, p.l), e: [48, 50, 22] }),
-  '鞭毛虫': (p, lv) => ({ b: pa('M50 14Q84 28 78 62Q70 90 50 90Q30 90 22 62Q16 28 50 14Z', p.c) + ln('M50 14Q36 0 46 -4M50 14Q70 -2 84 8', 3) + ci(38, 70, 5, '#e33', 'stroke="#222" stroke-width="2"') + dots([[62, 72], [58, 82], [44, 82]], 3, p.a), e: [50, 46, 22] }),
-  'ワムシ': (p, lv) => ({ b: pa('M50 62V90L38 96M50 90L62 96', p.d) + pa('M28 56Q26 30 50 28Q74 30 72 56Q70 76 50 78Q30 76 28 56Z', p.c) + ci(32, 22, 11, p.l) + ci(68, 22, 11, p.l) + rep(6, i => `<path d="M${22 + (i % 3) * 10 - (i > 2 ? -34 : 0)} 12l-2-6" stroke="#222" stroke-width="2.5"/>`), e: [50, 50, 18] }),
-  'クマムシ': (p, lv) => ({ b: el(50, 50, 38, 28, p.c) + rep(4, i => `<rect x="${18 + i * 17}" y="68" width="11" height="20" rx="5" fill="${p.d}" ${S}/>`) + ln('M24 40Q34 34 44 40M50 36Q62 30 72 38', 3, p.d), e: [66, 48, 16] }),
-  '線虫': (p, lv) => ({ b: ln('M10 74Q24 36 42 58Q58 80 72 42Q80 24 92 34', 22, '#222') + ln('M10 74Q24 36 42 58Q58 80 72 42Q80 24 92 34', 14, p.c) + ln('M22 56Q34 56 40 64M60 62Q66 50 70 44', 3, p.d), e: [0, 0, 0] , o: ci(88, 33, 5, '#fff', 'stroke="#222" stroke-width="2"') + ci(89, 34, 2.5, '#222', '') }),
-  '繊毛虫': (p, lv) => ({ b: `<path d="M6 54Q8 26 50 26Q92 28 94 54Q92 78 50 78Q8 78 6 54Z" fill="${p.c}" ${S}/>` + rep(8 + lv, i => `<path d="M${14 + i * (72 / (7 + lv))} 78v7M${14 + i * (72 / (7 + lv))} 26v-6" stroke="#222" stroke-width="2.5" stroke-linecap="round"/>`) + el(30, 54, 8, 6, p.d), e: [66, 50, 14] }),
-  'カイミジンコ': (p, lv) => ({ b: pa('M10 56Q10 20 50 20Q92 22 90 56Q84 84 50 84Q14 84 10 56Z', p.c) + ln('M50 20V84M30 26Q24 50 32 80M70 26Q76 50 68 80', 2.5, p.d) + ln('M14 40Q2 34 8 20M86 40Q98 34 94 22', 3), e: [66, 56, 12] }),
-  'ケンミジンコ': (p, lv) => ({ b: el(44, 48, 28, 22, p.c) + ln('M16 48Q0 40 4 24M16 52Q0 60 4 74', 3) + pa('M70 52Q86 56 92 50Q90 70 76 72Z', p.d) + ln('M70 56Q82 74 78 90M72 52Q92 62 94 80', 3) + ci(32, 60, 5, '#e84', 'stroke="#222" stroke-width="2"') + ci(48, 62, 5, '#e84', 'stroke="#222" stroke-width="2"'), e: [38, 42, 16] }),
-  'クラゲ型原虫': (p, lv) => ({ b: pa('M16 50Q14 8 50 8Q86 8 84 50Z', p.c) + dots([[34, 20], [64, 24], [52, 14]], 4, p.l) + rep(5, i => ln(`M${24 + i * 13} 50Q${16 + i * 13} 68 ${26 + i * 13} 86`, 4, i % 2 ? p.a : p.d)), e: [50, 36, 26] }),
-  'バクテリオファージ': (p, lv) => ({ b: pa('M50 8L76 22V44L50 58L24 44V22Z', p.c) + ln('M50 8V58M24 22L50 36L76 22', 2.5, p.d) + `<rect x="44" y="58" width="12" height="18" fill="${p.l}" ${S}/>` + ln('M44 76L26 94M56 76L74 94M50 76V96', 3) + ln('M26 94l-6 2M74 94l6 2', 3), e: [50, 30, 22] }),
-  'フロック形成菌': (p, lv) => ({ b: rep(3, i => ci(26 + i * 24, 64, 18, p.c)) + rep(2, i => ci(38 + i * 24, 44, 18, p.l)) + ci(50, 28, 16, p.c), e: [50, 36, 18] }),
-  'メタン菌': (p, lv) => ({ b: ci(48, 58, 30, p.c) + rep(3, i => ci(74 + i * 6, 38 - i * 14, 5 - i, '#fff', 'stroke="#222" stroke-width="2"')) + `<text x="48" y="90" font-size="13" text-anchor="middle" fill="${p.d}" stroke="#fff" stroke-width="3" paint-order="stroke">CH₄</text>`, e: [48, 54, 20] }),
-  '藻類': (p, lv) => ({ b: pa('M50 92Q8 72 14 40Q22 8 50 12Q78 8 86 40Q92 72 50 92Z', p.c) + ln('M50 22V84M50 40L30 28M50 56L72 42M50 70L34 62', 3, p.d) + ci(50, 14, 5, '#ffe14a', 'stroke="#222" stroke-width="2"'), e: [50, 52, 28] }),
-
-  // ---- 敵 ----
-  '浮遊細菌': (p) => ({ b: ci(50, 52, 32, p.c) + ln('M20 30Q10 20 16 12M80 30Q90 20 84 12', 3) + dots([[66, 70], [34, 72]], 4, p.l), e: [50, 52, 20] }),
-  '大腸菌': (p, lv) => ({ b: `<rect x="8" y="32" width="84" height="42" rx="21" fill="${p.c}" ${S}/>` + rep(7, i => ln(`M${18 + i * 11} ${i % 2 ? 74 : 32}v${i % 2 ? 10 : -10}`, 3)) + ci(80, 53, 5, p.d), e: [34, 52, 12] }),
-  '細菌群': (p) => ({ b: ci(30, 62, 20, p.c) + ci(66, 62, 20, p.l) + ci(48, 36, 20, p.c) + ci(78, 34, 11, p.d) + ci(20, 36, 10, p.d), e: [48, 38, 12] }),
-  '小型鞭毛虫': (p) => ({ b: pa('M22 62Q22 30 54 32Q82 34 82 62Q82 86 52 84Q22 86 22 62Z', p.c) + ln('M24 48Q6 36 12 18Q16 8 26 12', 3), e: [56, 56, 14] }),
-  'ファージ': (p) => ({ b: pa('M50 6L80 24V50L50 66L20 50V24Z', p.c) + ln('M50 6L50 66M20 24L80 50M80 24L20 50', 2, p.d) + ln('M50 66V82M50 82L26 96M50 82L74 96M50 82L38 98M50 82L62 98', 3), e: [50, 38, 22] }),
-  '糸状菌': (p) => ({ b: ln('M6 70Q22 30 36 66Q50 100 64 40Q76 6 94 30', 14, '#222') + ln('M6 70Q22 30 36 66Q50 100 64 40Q76 6 94 30', 8, p.c) + rep(6, i => ln(`M${14 + i * 14} ${48 + (i % 2) * 20}v6`, 2, p.d)), e: [0, 0, 0], o: '' }),
-  'スフェロチルス': (p) => ({ b: ln('M10 80Q30 70 50 60T90 40', 12, '#222') + ln('M10 80Q30 70 50 60T90 40', 7, p.c) + rep(5, i => ci(22 + i * 16, 74 - i * 8, 10, p.l)) + ln('M20 30Q30 10 42 28', 3), e: [0, 0, 0], o: ci(90, 38, 6, '#fff', 'stroke="#222" stroke-width="2"') }),
-  'チオスリックス': (p) => ({ b: rep(7, i => `<rect x="${8 + i * 12}" y="${40 + (i % 2) * 6}" width="12" height="24" rx="3" fill="${i % 2 ? p.c : p.l}" ${S} stroke-width="3"/>`) + ci(88, 52, 4, p.d), e: [0, 0, 0], o: ci(48, 52, 4, '#fff', 'stroke="#222" stroke-width="2"') }),
-  'ミクロスリックス': (p) => ({ b: rep(3, i => ln(`M${14 + i * 30} 90Q${4 + i * 30} 60 ${24 + i * 30} 40Q${34 + i * 30} 22 ${22 + i * 30} 8`, 5, p.c)) + el(50, 78, 26, 12, p.d), e: [50, 78, 14] }),
-  'ノカルディア': (p) => ({ b: el(50, 56, 34, 28, p.c) + rep(7, i => ln(`M${22 + i * 9} 30l${i % 2 ? -4 : 4} -12`, 3, p.d)) + ln('M30 70Q50 82 70 70', 3, p.d), e: [50, 54, 20] }),
-  'ゴルドニア': (p) => ({ b: `<rect x="14" y="24" width="72" height="56" rx="14" fill="${p.c}" ${S}/>` + ln('M22 40h56M22 54h56M22 68h56', 2, p.d) + ci(14, 52, 6, p.l) + ci(86, 52, 6, p.l), e: [50, 50, 20] }),
-  '油脂分解菌': (p) => ({ b: pa('M50 8Q86 48 80 68Q74 90 50 90Q26 90 20 68Q14 48 50 8Z', p.c) + ci(40, 56, 8, p.l, 'stroke="#222" stroke-width="2"') + ci(62, 72, 6, p.l, 'stroke="#222" stroke-width="2"'), e: [50, 50, 18] }),
-  '嫌気性菌': (p) => ({ b: ci(50, 56, 32, p.c) + pa('M26 38Q50 6 74 38Q50 26 26 38Z', p.d) + ln('M24 60Q10 70 14 84M76 60Q90 70 86 84', 3), e: [50, 56, 20] }),
-  '耐性菌': (p) => ({ b: ci(50, 54, 32, p.c) + rep(10, i => { const a = i * Math.PI / 5; return pa(`M${50 + 32 * Math.cos(a - .15)} ${54 + 32 * Math.sin(a - .15)}L${50 + 46 * Math.cos(a)} ${54 + 46 * Math.sin(a)}L${50 + 32 * Math.cos(a + .15)} ${54 + 32 * Math.sin(a + .15)}Z`, p.d); }), e: [50, 54, 20] }),
-  '付着細菌': (p) => ({ b: `<rect x="6" y="82" width="88" height="10" rx="3" fill="${p.d}" ${S}/>` + pa('M16 82Q16 30 50 30Q84 30 84 82Z', p.c) + ln('M30 82v8M50 82v8M70 82v8', 3), e: [50, 58, 20] }),
-  '硫黄細菌': (p) => ({ b: el(50, 54, 36, 28, p.c) + rep(6, i => ci(26 + (i % 3) * 24, 44 + Math.floor(i / 3) * 18, 6, '#fff', 'stroke="#222" stroke-width="2"')), e: [50, 36, 18] }),
-  '鉄細菌': (p) => ({ b: pa('M10 46Q10 22 30 22H70Q90 22 90 46V62Q90 80 70 80H30Q10 80 10 62Z', p.c) + dots([[24, 70], [76, 68], [30, 34]], 3, p.d) + ln('M10 46h80', 2, p.d), e: [50, 52, 22] }),
-  '酵母': (p) => ({ b: ci(40, 58, 28, p.c) + ci(74, 36, 16, p.l) + ci(78, 74, 9, p.c) + ci(40, 58, 8, p.d, 'stroke="#222" stroke-width="2"'), e: [38, 46, 16] }),
-  'カビ': (p) => ({ b: rep(6, i => ln(`M50 90L${10 + i * 16} ${30 + (i % 2) * 14}`, 4, p.d)) + rep(6, i => ci(10 + i * 16, 30 + (i % 2) * 14, 9, i % 2 ? p.c : p.l)) + el(50, 78, 18, 12, p.c), e: [50, 78, 12] }),
-  '放線菌': (p) => ({ b: ci(50, 54, 22, p.c) + rep(8, i => { const a = i * Math.PI / 4; return ln(`M${50 + 22 * Math.cos(a)} ${54 + 22 * Math.sin(a)}L${50 + 42 * Math.cos(a)} ${54 + 42 * Math.sin(a)}`, 5, p.d) + ci(50 + 42 * Math.cos(a), 54 + 42 * Math.sin(a), 4, p.l, 'stroke="#222" stroke-width="2"'); }), e: [50, 54, 14] }),
-  '原虫シスト': (p) => ({ b: ci(50, 54, 38, p.d) + ci(50, 54, 28, p.c) + ln('M24 40Q50 20 76 40M24 70Q50 90 76 70', 2, p.l), e: [50, 54, 16] }),
-  'ヒドラ': (p) => ({ b: `<rect x="40" y="38" width="20" height="56" rx="10" fill="${p.c}" ${S}/>` + rep(5, i => ln(`M${42 + i * 4} 38Q${14 + i * 18} ${28 - (i % 2) * 14} ${8 + i * 21} ${16 + (i % 2) * 10}`, 4, p.d)) + el(50, 40, 14, 10, p.c), e: [50, 62, 8] }),
-  'ミジンコ': (p) => ({ b: pa('M16 58Q14 22 52 22Q86 24 86 56Q80 84 48 82Q18 80 16 58Z', p.c) + pa('M52 22Q70 10 88 20Q90 36 80 40', p.d) + ln('M30 82v8M50 84v8M68 80v8', 3) + ci(68, 42, 6, '#222'), e: [0, 0, 0], o: ci(66, 44, 8, '#fff', 'stroke="#222" stroke-width="2"') + ci(68, 45, 4, '#222', '') }),
-  'スカムの子': (p) => ({ b: pa('M10 70Q8 40 28 38Q36 20 54 28Q74 20 82 42Q96 56 88 72Q70 84 50 78Q26 86 10 70Z', p.c) + dots([[30, 56], [56, 44], [70, 62], [40, 70]], 5, p.l), e: [50, 54, 22] }),
-  '膜付着菌': (p) => ({ b: `<rect x="4" y="46" width="92" height="12" rx="3" fill="${p.d}" ${S}/>` + rep(3, i => el(24 + i * 26, 34, 12, 14, p.c)) + rep(3, i => ln(`M${24 + i * 26} 58v8`, 4)), e: [50, 34, 52] }),
-};
-// 味方と共通の種族名の敵は、味方デザインを暗色で描く
+// キャラクターデザイン: 名前の元になった微生物を 32x32 のドット絵で描く(Canvasで生成)
+// 種族(family)ごとに固有の形(桿菌・球菌・ツリガネムシ・アメーバ・ミジンコ…)を持ち、
+// 段階(進化/強化)が上がるほど斑点・王冠・オーラが増える。敵は暗い配色+怒り目で描く。
+const ART_N = 32;
 const ART_ALLY_FALLBACK = { '線虫': 1, 'アメーバ': 1, '鞭毛虫': 1, 'ワムシ': 1, 'クマムシ': 1 };
-// 色相(種族ごとの固定色)
 const ART_HUE = {
   '好気性細菌': 200, 'バチルス': 30, 'シュードモナス': 150, '硝化菌': 280, '脱窒菌': 175, 'リン蓄積菌': 48, 'ツリガネムシ': 320, 'アメーバ': 100, '鞭毛虫': 60,
   'ワムシ': 340, 'クマムシ': 25, '線虫': 15, '繊毛虫': 235, 'カイミジンコ': 190, 'ケンミジンコ': 8, 'クラゲ型原虫': 300, 'バクテリオファージ': 255, 'フロック形成菌': 40, 'メタン菌': 130, '藻類': 120,
@@ -73,68 +14,196 @@ function artLevel(c) {
   const m = { '基本': 0, '進化1': 1, '進化2': 2, '通常': 0, '強化': 1, '変異': 2, '上位': 3, 'エリート': 4 };
   return m[c.stage || c.tier] || 0;
 }
-// 味方: 可愛い女の子のイラスト(髪色・服色は種族の色相、髪型は種族ごとに変化)
-function girlBody(hue, lv, style) {
-  const O = 'stroke="#5a3a3a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"';
-  const hair = `hsl(${hue},55%,${48 + (lv > 1 ? 6 : 0)}%)`, hairD = `hsl(${hue},55%,32%)`;
-  const dress = `hsl(${(hue + 40) % 360},70%,${66 + (lv > 1 ? 4 : 0)}%)`, dressD = `hsl(${(hue + 40) % 360},60%,45%)`;
-  const acc = `hsl(${(hue + 180) % 360},85%,64%)`, eye = `hsl(${(hue + 120) % 360},70%,45%)`;
-  let back = '';
-  if (style === 0) back = `<path d="M24 38Q4 52 12 82Q22 74 26 56Z" fill="${hair}" ${O}/><path d="M76 38Q96 52 88 82Q78 74 74 56Z" fill="${hair}" ${O}/>`;
-  else if (style === 1) back = `<path d="M70 30Q98 40 90 78Q80 62 72 52Z" fill="${hair}" ${O}/>`;
-  else back = `<path d="M22 36Q14 62 24 70L50 66L76 70Q86 62 78 36Z" fill="${hair}" ${O}/>`;
-  const body = `<path d="M34 86Q36 70 50 70Q64 70 66 86L70 98H30Z" fill="${dress}" ${O}/><path d="M44 70L50 78L56 70Z" fill="#fff" ${O}/><circle cx="50" cy="79" r="2.5" fill="${acc}"/>`;
-  const neck = `<rect x="45" y="62" width="10" height="9" fill="#ffe3d0" ${O}/>`;
-  const face = `<ellipse cx="50" cy="44" rx="25" ry="23" fill="#ffe9da" ${O}/>`;
-  const eyes = [34, 66].map(x => `<ellipse cx="${x}" cy="47" rx="7" ry="9" fill="#fff" stroke="#5a3a3a" stroke-width="2"/><ellipse cx="${x}" cy="48" rx="5.5" ry="7.5" fill="${eye}"/><ellipse cx="${x}" cy="49" rx="3" ry="4.5" fill="#2a1a2a"/><circle cx="${x - 2}" cy="44.5" r="2.6" fill="#fff"/><circle cx="${x + 2}" cy="52" r="1.2" fill="#fff"/><path d="M${x - 8} 41Q${x} 36 ${x + 8} 41" fill="none" stroke="#5a3a3a" stroke-width="2.5" stroke-linecap="round"/>`).join('');
-  const cheeks = `<ellipse cx="27" cy="55" rx="5" ry="3" fill="#ff9fb0" opacity=".6"/><ellipse cx="73" cy="55" rx="5" ry="3" fill="#ff9fb0" opacity=".6"/><path d="M45 58Q50 63 55 58" fill="#ff8a9a" stroke="#5a3a3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
-  const bangs = `<path d="M24 44Q20 12 50 12Q80 12 76 44Q70 28 62 26Q58 34 48 28Q38 34 34 26Q28 30 24 44Z" fill="${hair}" ${O}/><path d="M36 18Q42 14 50 15" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".55"/>`;
-  const ribbon = `<path d="M70 14L84 6L82 22Z M70 14L58 8L60 22Z" fill="${acc}" ${O}/><circle cx="70" cy="14" r="3.5" fill="${hairD}" stroke="#5a3a3a" stroke-width="1.5"/>`;
-  return back + body + neck + face + eyes + cheeks + bangs + ribbon;
+
+// 種族 -> [形状, バリエーション]
+const ART_SHAPE = {
+  '好気性細菌': ['rod', 0], 'バチルス': ['rod', 1], 'シュードモナス': ['rod', 2], '硝化菌': ['spiral', 0], '脱窒菌': ['rod', 3],
+  'リン蓄積菌': ['coccus', 1], 'ツリガネムシ': ['bell', 0], 'アメーバ': ['amoeba', 0], '鞭毛虫': ['flag', 0], 'ワムシ': ['rotifer', 0],
+  'クマムシ': ['tardi', 0], '線虫': ['worm', 0], '繊毛虫': ['ciliate', 0], 'カイミジンコ': ['daphnia', 0], 'ケンミジンコ': ['copepod', 0],
+  'クラゲ型原虫': ['jelly', 0], 'バクテリオファージ': ['phage', 0], 'フロック形成菌': ['floc', 0], 'メタン菌': ['coccus', 2], '藻類': ['alga', 0],
+  '浮遊細菌': ['coccus', 0], '大腸菌': ['rod', 4], '細菌群': ['floc', 1], '小型鞭毛虫': ['flag', 1], 'ファージ': ['phage', 1],
+  '糸状菌': ['filament', 0], 'スフェロチルス': ['filament', 1], 'チオスリックス': ['filament', 2], 'ミクロスリックス': ['filament', 3],
+  'ノカルディア': ['actino', 0], 'ゴルドニア': ['actino', 1], '油脂分解菌': ['rod', 5], '嫌気性菌': ['spiral', 1], '耐性菌': ['coccus', 3],
+  '付着細菌': ['biofilm', 0], '硫黄細菌': ['coccus', 4], '鉄細菌': ['rod', 6], '酵母': ['yeast', 0], 'カビ': ['mold', 0], '放線菌': ['actino', 2],
+  '原虫シスト': ['cyst', 0], 'ヒドラ': ['hydra', 0], 'ミジンコ': ['daphnia', 1], 'スカムの子': ['amoeba', 1], '膜付着菌': ['biofilm', 1],
+};
+function artDraw(shape, v, g, p, t) {
+  const px = (x, y, c = p.c) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), 1, 1); };
+  const rc = (x, y, w, h, c = p.c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+  const disc = (cx, cy, rx, ry, c = p.c, shade = true) => {
+    for (let y = -ry; y <= ry; y++) for (let x = -rx; x <= rx; x++) if ((x * x) / (rx * rx + .3) + (y * y) / (ry * ry + .3) <= 1) {
+      px(cx + x, cy + y, shade && (x + y > (rx + ry) * 0.45) ? p.d : shade && (x + y < -(rx + ry) * 0.5) ? p.l : c);
+    }
+  };
+  const line = (x0, y0, x1, y1, c = p.d) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)); for (let i = 0; i <= n; i++) px(x0 + (x1 - x0) * i / (n || 1), y0 + (y1 - y0) * i / (n || 1), c); };
+  const spots = (arr, c = p.d) => arr.forEach(([x, y]) => px(x, y, c));
+  let eye = [16, 15, 5];
+  switch (shape) {
+    case 'rod': { // 桿菌: カプセル型+鞭毛
+      const len = [10, 11, 9, 11, 8, 12, 9][v], hh = [5, 4, 5, 5, 4, 4, 6][v];
+      rc(16 - len, 16 - hh, len * 2, hh * 2 + 1); disc(16 - len, 16, hh, hh); disc(16 + len, 16, hh, hh);
+      rc(16 - len, 16 + hh - 2, len * 2, 3, p.d); rc(16 - len, 16 - hh, len * 2, 2, p.l);
+      if (v === 1) { disc(16 + 5, 16, 3, 3, p.a, false); }
+      if (v === 3 || v === 6) spots([[10, 13], [22, 18], [14, 19], [19, 12]], p.l);
+      if (v === 5) spots([[9, 14], [12, 19], [21, 13], [23, 18]], p.a);
+      for (let i = 0; i < 3; i++) { px(3 - i, 14 + i * 2 + (i % 2), p.d); px(2 - i, 14 + i * 2 + (i % 2), p.d); }
+      eye = [16, 15, 6]; break;
+    }
+    case 'coccus': { // 球菌
+      const r = [9, 8, 6, 9, 7][v];
+      if (v === 2) { disc(10, 20, r, r); disc(21, 20, r, r); disc(16, 10, r, r); eye = [16, 11, 4]; }
+      else { disc(16, 17, r, r); eye = [16, 16, 6]; if (v === 4) spots([[11, 21], [20, 22], [14, 23], [22, 14]], p.a); if (v === 3) { for (let a = 0; a < 8; a++) px(16 + Math.cos(a * .785) * (r + 2), 17 + Math.sin(a * .785) * (r + 2), p.a); } if (v === 1) spots([[11, 12], [22, 12], [12, 22], [21, 22]], p.a); }
+      break;
+    }
+    case 'spiral': { // らせん菌
+      for (let x = 3; x <= 28; x++) { const y = 16 + Math.sin(x * (v ? 0.6 : 0.5)) * 6; rc(x, Math.round(y) - 2, 1, 5, x % 4 < 2 ? p.c : p.d); }
+      eye = [16, 16, 0]; break;
+    }
+    case 'bell': { // ツリガネムシ
+      for (let y = 4; y < 18; y++) { const w = 4 + Math.sin((y - 4) / 13 * 1.6) * 9; rc(Math.round(16 - w), y, Math.round(w * 2), 1, y > 14 ? p.d : y < 7 ? p.l : p.c); }
+      rc(7, 17, 18, 2, p.a); for (let i = 0; i < 7; i++) px(8 + i * 2.6, 3, p.l);
+      for (let y = 19; y < 30; y++) px(16 + Math.sin(y * 0.9) * 2.5, y, p.d), px(17 + Math.sin(y * 0.9) * 2.5, y, p.d);
+      eye = [16, 11, 6]; break;
+    }
+    case 'amoeba': { // アメーバ
+      disc(16, 17, 10, 8);
+      disc(7, 12, 4, 3); disc(25, 22, 4, 3); disc(8, 24, 3, 3); disc(24, 10, 3, 3);
+      if (v === 1) { spots([[12, 24], [18, 25], [22, 14]], p.l); }
+      disc(19, 19, 3, 3, p.a, false); eye = [15, 14, 6]; break;
+    }
+    case 'flag': { // 鞭毛虫: 洋梨形+長い鞭毛
+      disc(18, 17, 9, 7); disc(24, 17, 5, 5);
+      for (let x = 0; x < 11; x++) px(10 - x, 16 + Math.sin(x * .8) * 3, p.d), px(10 - x, 17 + Math.sin(x * .8) * 3, p.d);
+      disc(20, 20, 2, 2, p.a, false); if (v) px(14, 12, p.l);
+      eye = [19, 14, 5]; break;
+    }
+    case 'rotifer': { // ワムシ
+      disc(16, 19, 7, 8); rc(13, 26, 6, 4, p.d); rc(12, 29, 3, 2, p.d); rc(17, 29, 3, 2, p.d);
+      rc(7, 8, 18, 3, p.a); for (let i = 0; i < 9; i++) { px(7 + i * 2, 6 + (i % 2), p.l); px(7 + i * 2, 5, p.d); }
+      eye = [16, 16, 5]; break;
+    }
+    case 'tardi': { // クマムシ
+      disc(16, 16, 11, 8);
+      for (let i = 0; i < 4; i++) { rc(7 + i * 5 + (i > 1 ? 2 : 0), 22, 3, 6, p.d); rc(6 + i * 5 + (i > 1 ? 2 : 0), 27, 5, 2, p.d); }
+      for (let i = 0; i < 4; i++) rc(8 + i * 5, 10, 1, 12, p.d);
+      px(5, 15, p.d); px(4, 16, p.d); eye = [10, 14, 4]; break;
+    }
+    case 'worm': { // 線虫
+      for (let x = 3; x < 29; x++) { const y = 16 + Math.sin(x * 0.45) * 6; disc(x, Math.round(y), 2, 2, x % 5 < 2 ? p.l : p.c, false); }
+      eye = [28, 16 + Math.sin(28 * 0.45) * 6 - 1, 0]; break;
+    }
+    case 'ciliate': { // ゾウリムシ
+      disc(16, 16, 13, 7); for (let a = 0; a < 20; a++) { const x = 5 + a * 1.1; px(x, 8, p.d); px(x, 24, p.d); }
+      disc(18, 17, 3, 3, p.a, false); disc(11, 16, 2, 2, p.d, false); if (v === 0) px(24, 14, p.l);
+      eye = [22, 14, 4]; break;
+    }
+    case 'daphnia': { // ミジンコ
+      disc(15, 18, 9, 8); disc(24, 13, 5, 5);
+      rc(14, 13, 1, 10, p.d); for (let i = 0; i < 5; i++) px(8 + i * 2, 24 + (i % 2), p.d);
+      line(26, 8, 30, 3); line(27, 9, 31, 7); line(6, 20, 1, 24); disc(14, 19, 3, 3, p.a, false);
+      eye = [24, 13, 0]; break;
+    }
+    case 'copepod': { // ケンミジンコ
+      disc(14, 16, 8, 6); disc(22, 15, 4, 4); rc(4, 15, 4, 3, p.d);
+      line(25, 12, 31, 5); line(25, 13, 31, 9); line(1, 12, 5, 16); line(1, 20, 5, 17);
+      rc(26, 16, 0, 0); line(7, 19, 3, 25); line(10, 21, 7, 26); disc(12, 17, 2, 2, p.a, false);
+      eye = [21, 14, 0]; break;
+    }
+    case 'jelly': { // クラゲ
+      disc(16, 13, 11, 9); rc(5, 14, 22, 5, p.c); rc(4, 19, 24, 2, p.a);
+      for (let i = 0; i < 6; i++) for (let y = 21; y < 29; y++) px(6 + i * 4 + Math.sin(y + i) * 1.2, y, i % 2 ? p.d : p.l);
+      eye = [16, 12, 7]; break;
+    }
+    case 'hydra': { // ヒドラ
+      rc(14, 14, 5, 15, p.c); rc(12, 27, 9, 3, p.d); disc(16, 11, 6, 5);
+      for (let i = 0; i < 6; i++) { const a = -2.6 + i * 0.5; line(16, 10, 16 + Math.cos(a) * 14, 8 + Math.sin(a) * 9 + 6, i % 2 ? p.d : p.a); }
+      eye = [16, 11, 4]; break;
+    }
+    case 'phage': { // バクテリオファージ
+      const h = v ? 6 : 7; for (let y = 3; y < 3 + h * 2; y++) { const w = h - Math.abs(y - (3 + h)) * 0.5; rc(Math.round(16 - w), y, Math.round(w * 2), 1, y > 3 + h ? p.d : p.c); }
+      rc(15, 3 + h * 2, 3, 8, p.a); for (let i = 0; i < 4; i++) { rc(15, 17 + i * 2, 3, 1, p.l); }
+      rc(11, 26, 11, 2, p.d); line(11, 27, 5, 31); line(21, 27, 27, 31); line(14, 28, 12, 31); line(18, 28, 20, 31);
+      eye = [16, 10, 4]; break;
+    }
+    case 'floc': { // フロック(塊)
+      const ds = v ? [[10, 20, 5], [21, 19, 6], [15, 11, 5], [24, 11, 3], [6, 12, 3]] : [[9, 21, 6], [22, 20, 6], [15, 12, 7], [26, 11, 3], [5, 12, 3]];
+      ds.forEach(([x, y, r]) => disc(x, y, r, r)); spots([[12, 22], [20, 18], [14, 10]], p.l); eye = [16, 13, 6]; break;
+    }
+    case 'alga': { // 藻類(緑の細胞)
+      disc(16, 16, 11, 11); disc(11, 12, 3, 3, p.a, false); disc(21, 20, 3, 3, p.a, false); disc(22, 10, 2, 2, p.a, false);
+      line(16, 5, 16, 27, p.d); eye = [16, 16, 8]; break;
+    }
+    case 'filament': { // 糸状菌
+      const n = [9, 7, 8, 11][v]; for (let i = 0; i < n; i++) { const x = 3 + i * (26 / n), y = 16 + Math.sin(i * (v + 1) * .5) * 6; rc(Math.round(x), Math.round(y) - 3, Math.ceil(26 / n) - 1, 7, i % 2 ? p.c : p.l); rc(Math.round(x), Math.round(y) + 2, Math.ceil(26 / n) - 1, 2, p.d); }
+      eye = [3 + (n - 1) * 26 / n + 1, 16 + Math.sin((n - 1) * (v + 1) * .5) * 6 - 1, 0]; if (v === 2) spots([[10, 10], [18, 22]], p.a); break;
+    }
+    case 'actino': { // 放線菌(放射状の菌糸)
+      disc(16, 16, 6, 6); for (let a = 0; a < 10; a++) { const r = a * .628; line(16 + Math.cos(r) * 6, 16 + Math.sin(r) * 6, 16 + Math.cos(r) * (v === 1 ? 11 : 14), 16 + Math.sin(r) * (v === 1 ? 11 : 14), a % 2 ? p.d : p.a); }
+      eye = [16, 15, 4]; break;
+    }
+    case 'yeast': { // 酵母(出芽)
+      disc(13, 18, 8, 8); disc(24, 10, 5, 5); disc(24, 25, 3, 3); px(18, 14, p.l); eye = [13, 17, 5]; break;
+    }
+    case 'mold': { // カビ
+      disc(16, 20, 9, 7); for (let i = 0; i < 5; i++) { const x = 7 + i * 4.5; line(x, 15, x + (i - 2) * 1.2, 6 + (i % 2) * 3, p.d); disc(Math.round(x + (i - 2) * 1.2), 6 + (i % 2) * 3, 2, 2, p.a, false); }
+      eye = [16, 20, 5]; break;
+    }
+    case 'cyst': { // シスト(厚い殻)
+      disc(16, 16, 12, 12, p.d, false); disc(16, 16, 9, 9); disc(16, 16, 4, 4, p.a, false); eye = [16, 16, 0]; break;
+    }
+    case 'biofilm': { // バイオフィルム
+      rc(3, 20, 26, 6, p.d); for (let i = 0; i < 5; i++) disc(6 + i * 5, 17, 3, 4); rc(3, 19, 26, 2, p.c); spots([[8, 22], [15, 23], [22, 22]], p.l);
+      eye = [16, 16, 6]; break;
+    }
+    default: disc(16, 16, 10, 10); eye = [16, 16, 5];
+  }
+  return eye;
 }
 const artCache = {};
-function artSvg(c, enemy, boss) {
+function artCanvas(c, enemy, boss) {
   const key = c.id + (enemy ? 'e' : 'a') + (boss ? 'b' : '');
   if (artCache[key]) return artCache[key];
-  const fam = c.family, lv = artLevel(c);
+  const fam = c.family, lv = artLevel(c), N = ART_N;
   const hue = ART_HUE[fam] != null ? ART_HUE[fam] : 180;
-  const shared = !!ART_ALLY_FALLBACK[fam];
-  const dk = enemy && shared;
-  const p = dk
-    ? { c: `hsl(${(hue + 160) % 360},45%,42%)`, d: `hsl(${(hue + 160) % 360},45%,20%)`, l: `hsl(${(hue + 160) % 360},50%,65%)`, a: `hsl(${(hue + 200) % 360},60%,60%)` }
-    : { c: `hsl(${hue},62%,${58 + (lv > 1 ? 4 : 0)}%)`, d: `hsl(${hue},58%,30%)`, l: `hsl(${hue},80%,82%)`, a: `hsl(${(hue + 50) % 360},75%,62%)` };
-  if (!enemy) {
-    const gold = '#ffd800';
-    let deco = '';
-    if (lv >= 1) deco += dots([[10, 22], [90, 20]], 3.5, gold);
-    if (lv >= 2) deco += `<path d="M34 14L38 2L50 9L62 2L66 14Z" fill="${gold}" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>`;
-    if (lv >= 3) deco += `<circle cx="50" cy="50" r="47" fill="none" stroke="${p.a}" stroke-width="3" stroke-dasharray="6 6"/>`;
-    const gs = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">${girlBody(hue, lv, Math.floor(hue / 7) % 3)}${deco}</svg>`;
-    return artCache[key] = gs;
-  }
-  const d = (DESIGNS[fam] || DESIGNS['アメーバ'])(p, lv);
-  let face = '';
-  const [ex, ey, sp] = d.e;
-  if (sp) {
-    const l = ex - sp / 2, r = ex + sp / 2, er = sp < 14 ? 5.5 : 7;
-    face = `<circle cx="${l}" cy="${ey}" r="${er}" fill="#fff" stroke="#222" stroke-width="2"/><circle cx="${r}" cy="${ey}" r="${er}" fill="#fff" stroke="#222" stroke-width="2"/>`
-      + `<circle cx="${l + 1}" cy="${ey + 1}" r="${er / 2}" fill="#222"/><circle cx="${r + 1}" cy="${ey + 1}" r="${er / 2}" fill="#222"/>`
-      + (enemy ? `<path d="M${l - er - 1} ${ey - er - 5}L${l + er} ${ey - er + 1}M${r + er + 1} ${ey - er - 5}L${r - er} ${ey - er + 1}" stroke="#222" stroke-width="3" stroke-linecap="round"/><path d="M${ex - 6} ${ey + er + 10}Q${ex} ${ey + er + 4} ${ex + 6} ${ey + er + 10}" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>`
-        : `<path d="M${ex - 6} ${ey + er + 3}Q${ex} ${ey + er + 10} ${ex + 6} ${ey + er + 3}" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>`);
-  } else if (d.o) face = d.o;
-  // 段階ごとの装飾(種族ごとに固有の色・位置)
+  const dk = enemy && !!ART_ALLY_FALLBACK[fam];
+  const h = dk ? (hue + 160) % 360 : hue;
+  const p = enemy
+    ? { c: `hsl(${h},${dk ? 45 : 55}%,${dk ? 42 : 46}%)`, d: `hsl(${h},50%,24%)`, l: `hsl(${h},55%,66%)`, a: `hsl(${(h + 50) % 360},70%,52%)` }
+    : { c: `hsl(${h},62%,${58 + (lv > 1 ? 4 : 0)}%)`, d: `hsl(${h},58%,34%)`, l: `hsl(${h},80%,82%)`, a: `hsl(${(h + 50) % 360},75%,62%)` };
+  const cv = document.createElement('canvas'); cv.width = cv.height = N;
+  const g = cv.getContext('2d');
+  const [shape, v] = ART_SHAPE[fam] || ['amoeba', 0];
+  const [ex, ey, sp] = artDraw(shape, v, g, p, lv);
+  // 段階装飾(斑点)
+  const px = (x, y, col) => { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), 1, 1); };
+  // 輪郭(不透明ピクセルに接する透明ピクセルを暗色で縁取る)
+  const outline = () => {
+    const im = g.getImageData(0, 0, N, N), d = im.data, o = [];
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      if (d[(y * N + x) * 4 + 3]) continue;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const xx = x + dx, yy = y + dy; if (xx >= 0 && yy >= 0 && xx < N && yy < N && d[(yy * N + xx) * 4 + 3]) { o.push([x, y]); break; } }
+    }
+    g.fillStyle = '#1a1020'; o.forEach(([x, y]) => g.fillRect(x, y, 1, 1));
+  };
+  outline();
+  // 目(白目+黒目)
+  const eyeAt = (x, y) => { x = Math.round(x); y = Math.round(y); g.fillStyle = '#fff'; g.fillRect(x - 1, y - 1, 3, 3); g.fillStyle = '#111'; g.fillRect(x, y, 2, 2); };
+  if (sp) { eyeAt(ex - sp / 2, ey); eyeAt(ex + sp / 2, ey); } else eyeAt(ex, ey);
+  if (enemy) { const l = sp ? ex - sp / 2 : ex - 1, r = sp ? ex + sp / 2 : ex + 1; px(l - 2, ey - 3, '#111'); px(l - 1, ey - 3, '#111'); px(l, ey - 2, '#111'); px(r + 2, ey - 3, '#111'); px(r + 1, ey - 3, '#111'); px(r, ey - 2, '#111'); }
+  else px(ex, ey + 4, '#c33');
   const gold = '#ffd800';
-  let deco = '';
-  if (lv >= 1) deco += dots([[22, 22], [78, 20]], 4, gold) + `<path d="M${14 + (hue % 20)} 12l4 8" stroke="${p.a}" stroke-width="4" stroke-linecap="round"/>`;
-  if (lv >= 2) deco += `<path d="M34 18L38 4L50 12L62 4L66 18Z" fill="${gold}" stroke="#222" stroke-width="3" stroke-linejoin="round"/>`;
-  if (lv >= 3) deco += `<circle cx="50" cy="50" r="47" fill="none" stroke="${p.a}" stroke-width="3" stroke-dasharray="6 6"/>`;
-  if (lv >= 4 || boss) deco += `<path d="M8 20l5 10 10-5-5 10 10 5-10 4 3 11-10-6-6 10-3-11-11 2 8-8z" fill="${gold}" opacity=".8" transform="scale(.5) translate(6 0)"/>`;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">${d.b}${face}${deco}</svg>`;
-  return artCache[key] = svg;
+  if (lv >= 1) { px(3, 3, gold); px(4, 3, gold); px(3, 4, gold); px(28, 5, gold); px(27, 5, gold); px(28, 4, gold); }
+  if (lv >= 2) { g.fillStyle = gold; g.fillRect(12, 1, 9, 2); [12, 16, 20].forEach(x => g.fillRect(x, 0, 1, 1)); g.fillStyle = '#c33'; g.fillRect(16, 1, 1, 1); }
+  if (lv >= 3) { g.fillStyle = p.a; for (let a = 0; a < 16; a++) g.fillRect(Math.round(16 + Math.cos(a * .3927) * 15.5), Math.round(16 + Math.sin(a * .3927) * 15.5), 1, 1); }
+  if (lv >= 4 || boss) { g.fillStyle = gold; [[2, 28], [29, 27], [4, 14], [28, 14]].forEach(([x, y]) => { g.fillRect(x - 1, y, 3, 1); g.fillRect(x, y - 1, 1, 3); }); }
+  return artCache[key] = cv;
+}
+function artSvg(c, enemy, boss) {
+  return `<img class="pix" alt="" src="${artCanvas(c, enemy, boss).toDataURL()}">`;
 }
 const artImgs = {};
 function artImg(c, enemy, boss) {
   const k = c.id + (enemy ? 'e' : 'a') + (boss ? 'b' : '');
-  if (!artImgs[k]) { const i = new Image(); i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(artSvg(c, enemy, boss)); artImgs[k] = i; }
+  if (!artImgs[k]) { const i = new Image(); i.src = artCanvas(c, enemy, boss).toDataURL(); artImgs[k] = i; }
   return artImgs[k];
 }

@@ -32,7 +32,7 @@ h2{margin:0;font-size:3cqw;color:#fff;text-shadow:0 2px 0 #1a3a7a,0 0 10px rgba(
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(11cqw,1fr));gap:1cqw}
 .card{background:linear-gradient(#ffffff,#d6e8ff);border:2px solid #fff;border-radius:1cqw;padding:.4cqw;text-align:center;font-size:1.4cqw;cursor:pointer;position:relative;color:#123;font-weight:bold;box-shadow:0 3px 6px rgba(0,0,0,.35)}
 .card.sel{outline:3px solid #ff5a3a;background:linear-gradient(#fff6c0,#ffd860)}.card.off{opacity:.35;filter:grayscale(1)}
-.icon{width:7cqw;height:7cqw;margin:.2cqw auto}.icon svg{width:100%;height:100%}
+.icon{width:7cqw;height:7cqw;margin:.2cqw auto}.icon svg,.pix{width:100%;height:100%;image-rendering:pixelated}
 .lv{position:absolute;top:2px;right:4px;font-weight:bold;color:#fff;background:#e02a1a;border-radius:1cqw;padding:0 .6cqw;font-size:1.2cqw}
 .tabs{display:flex;gap:1cqw;margin-bottom:1cqh}.tabs .btn{font-size:1.8cqw;padding:.6cqh 1.4cqw}
 .stage{display:flex;align-items:center;gap:1.2cqw;background:linear-gradient(#fff,#cfe4ff);border:2px solid #fff;border-radius:1.2cqw;padding:.8cqw 1.2cqw;margin-bottom:.8cqh;color:#123;cursor:pointer;font-size:1.8cqw;font-weight:bold;box-shadow:0 3px 6px rgba(0,0,0,.35)}
@@ -62,7 +62,7 @@ h2{margin:0;font-size:3cqw;color:#fff;text-shadow:0 2px 0 #1a3a7a,0 0 10px rgba(
 .deck{position:absolute;left:1.5cqw;right:1.5cqw;bottom:1.5cqh;display:grid;grid-template-columns:repeat(5,1fr);gap:1cqw}
 .unitbtn{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;background:linear-gradient(#fff,#bcd8ff);border:3px solid #fff;border-radius:1.2cqw;padding:.4cqh .4cqw;color:#123;font-family:inherit;font-weight:900;box-shadow:0 .6cqh 0 #1a3a7a,0 1cqh 2cqh rgba(0,0,0,.5);cursor:pointer}
 .unitbtn:active{transform:translateY(.4cqh)}
-.unitbtn .ic{width:6.5cqw;height:6.5cqw;display:block}.unitbtn .ic svg{width:100%;height:100%}
+.unitbtn .ic{width:6.5cqw;height:6.5cqw;display:block}.unitbtn .ic .pix{width:100%;height:100%}
 .unitbtn .nm{font-size:1.3cqw}.unitbtn .cs{font-size:1.7cqw;color:#a05a00}
 .unitbtn:disabled{filter:grayscale(.9) brightness(.7)}
 .unitbtn .cdb{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);height:0}
