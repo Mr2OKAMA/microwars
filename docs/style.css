@@ -49,7 +49,7 @@ h2{margin:0;font-size:3cqw;color:#fff;text-shadow:0 2px 0 #1a3a7a,0 0 10px rgba(
 .result{display:flex;gap:1cqw;flex-wrap:wrap;justify-content:center;max-width:100%}
 /* 戦闘 */
 .battlescr{padding:0}
-.battlescr canvas#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:grab}
+.battlescr canvas#cv{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
 .topbar{position:absolute;top:1.5cqh;left:1.5cqw;right:1.5cqw;display:flex;gap:1.5cqw;align-items:center;pointer-events:none}
 .topbar .btn{pointer-events:auto;margin-left:auto}
 .stname{background:rgba(0,0,0,.55);border-radius:2cqw;padding:.6cqh 1.6cqw;font-weight:bold;font-size:2cqw}
@@ -57,7 +57,7 @@ h2{margin:0;font-size:3cqw;color:#fff;text-shadow:0 2px 0 #1a3a7a,0 0 10px rgba(
 .wallet{background:linear-gradient(#2a2a3a,#0e0e18);border:2px solid #ffd800;color:#ffe45a;border-radius:2cqw;padding:.6cqh 1.6cqw;font-weight:900;font-size:2.4cqw}
 .minimap{position:absolute;top:11cqh;left:50%;transform:translateX(-50%);width:30cqw;pointer-events:none}
 .minimap canvas{width:100%;height:auto}
-.scrl{position:absolute;top:40%;width:5cqw;height:5cqw;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.45);color:#fff;font-size:2cqw;touch-action:none}
+.scrl-unused{position:absolute;top:40%;width:5cqw;height:5cqw;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.45);color:#fff;font-size:2cqw;touch-action:none}
 .scrl.l{left:1cqw}.scrl.r{right:1cqw}
 .deck{position:absolute;left:1.5cqw;right:1.5cqw;bottom:1.5cqh;display:grid;grid-template-columns:repeat(5,1fr);gap:1cqw}
 .unitbtn{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;background:linear-gradient(#fff,#bcd8ff);border:3px solid #fff;border-radius:1.2cqw;padding:.4cqh .4cqw;color:#123;font-family:inherit;font-weight:900;box-shadow:0 .6cqh 0 #1a3a7a,0 1cqh 2cqh rgba(0,0,0,.5);cursor:pointer}
@@ -68,3 +68,12 @@ h2{margin:0;font-size:3cqw;color:#fff;text-shadow:0 2px 0 #1a3a7a,0 0 10px rgba(
 .unitbtn .cdb{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);height:0}
 .ovl{position:absolute;inset:0;background:rgba(0,0,10,.65);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2cqh;z-index:9;backdrop-filter:blur(3px)}
 .ovl .logo{font-size:10cqw}
+
+.hero-hud{background:rgba(0,0,0,.6);border:2px solid #fff;padding:.5cqh 1cqw;min-width:18cqw}
+.hname{font-size:1.8cqw;font-weight:bold}
+.hpbar{height:1.4cqh;background:#300;border:2px solid #fff;margin-top:.3cqh}.hpbar i{display:block;height:100%;width:100%;background:#6df08a}
+.manabar{position:absolute;left:1.5cqw;right:1.5cqw;bottom:21cqh;pointer-events:none}
+.mana{position:relative;height:3cqh;background:rgba(0,0,0,.6);border:2px solid #fff}
+.mana i{position:absolute;left:0;top:0;bottom:0;width:0;background:#2f9bff}
+.mana span{position:absolute;inset:0;text-align:center;font-size:1.6cqw;font-weight:bold;line-height:3cqh}
+.battlescr .btn,.battlescr .unitbtn,.battlescr .stname{border-radius:0}
