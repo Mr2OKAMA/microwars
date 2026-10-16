@@ -143,8 +143,8 @@ function pull(n) {
 let B = null;
 function stopBattle() { if (B) { cancelAnimationFrame(B.raf); B = null; } }
 // 内部解像度は低く保ち、CSSで拡大してドット絵風に表示する
-const VW = 960, H = 540, GY = 410, PX = 0.5;
-const HERO_X = 220;
+const VW = 540, H = 960, GY = 640, PX = 0.5;
+const HERO_X = 140;
 function stageLen(si) { return Math.round(1500 + si * 110 + Math.sin(si * 1.7) * 120); }
 
 function startBattle(si) {
