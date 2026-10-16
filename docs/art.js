@@ -73,6 +73,25 @@ function artLevel(c) {
   const m = { '基本': 0, '進化1': 1, '進化2': 2, '通常': 0, '強化': 1, '変異': 2, '上位': 3, 'エリート': 4 };
   return m[c.stage || c.tier] || 0;
 }
+// 味方: 可愛い女の子のイラスト(髪色・服色は種族の色相、髪型は種族ごとに変化)
+function girlBody(hue, lv, style) {
+  const O = 'stroke="#5a3a3a" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"';
+  const hair = `hsl(${hue},55%,${48 + (lv > 1 ? 6 : 0)}%)`, hairD = `hsl(${hue},55%,32%)`;
+  const dress = `hsl(${(hue + 40) % 360},70%,${66 + (lv > 1 ? 4 : 0)}%)`, dressD = `hsl(${(hue + 40) % 360},60%,45%)`;
+  const acc = `hsl(${(hue + 180) % 360},85%,64%)`, eye = `hsl(${(hue + 120) % 360},70%,45%)`;
+  let back = '';
+  if (style === 0) back = `<path d="M24 38Q4 52 12 82Q22 74 26 56Z" fill="${hair}" ${O}/><path d="M76 38Q96 52 88 82Q78 74 74 56Z" fill="${hair}" ${O}/>`;
+  else if (style === 1) back = `<path d="M70 30Q98 40 90 78Q80 62 72 52Z" fill="${hair}" ${O}/>`;
+  else back = `<path d="M22 36Q14 62 24 70L50 66L76 70Q86 62 78 36Z" fill="${hair}" ${O}/>`;
+  const body = `<path d="M34 86Q36 70 50 70Q64 70 66 86L70 98H30Z" fill="${dress}" ${O}/><path d="M44 70L50 78L56 70Z" fill="#fff" ${O}/><circle cx="50" cy="79" r="2.5" fill="${acc}"/>`;
+  const neck = `<rect x="45" y="62" width="10" height="9" fill="#ffe3d0" ${O}/>`;
+  const face = `<ellipse cx="50" cy="44" rx="25" ry="23" fill="#ffe9da" ${O}/>`;
+  const eyes = [34, 66].map(x => `<ellipse cx="${x}" cy="47" rx="7" ry="9" fill="#fff" stroke="#5a3a3a" stroke-width="2"/><ellipse cx="${x}" cy="48" rx="5.5" ry="7.5" fill="${eye}"/><ellipse cx="${x}" cy="49" rx="3" ry="4.5" fill="#2a1a2a"/><circle cx="${x - 2}" cy="44.5" r="2.6" fill="#fff"/><circle cx="${x + 2}" cy="52" r="1.2" fill="#fff"/><path d="M${x - 8} 41Q${x} 36 ${x + 8} 41" fill="none" stroke="#5a3a3a" stroke-width="2.5" stroke-linecap="round"/>`).join('');
+  const cheeks = `<ellipse cx="27" cy="55" rx="5" ry="3" fill="#ff9fb0" opacity=".6"/><ellipse cx="73" cy="55" rx="5" ry="3" fill="#ff9fb0" opacity=".6"/><path d="M45 58Q50 63 55 58" fill="#ff8a9a" stroke="#5a3a3a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const bangs = `<path d="M24 44Q20 12 50 12Q80 12 76 44Q70 28 62 26Q58 34 48 28Q38 34 34 26Q28 30 24 44Z" fill="${hair}" ${O}/><path d="M36 18Q42 14 50 15" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".55"/>`;
+  const ribbon = `<path d="M70 14L84 6L82 22Z M70 14L58 8L60 22Z" fill="${acc}" ${O}/><circle cx="70" cy="14" r="3.5" fill="${hairD}" stroke="#5a3a3a" stroke-width="1.5"/>`;
+  return back + body + neck + face + eyes + cheeks + bangs + ribbon;
+}
 const artCache = {};
 function artSvg(c, enemy, boss) {
   const key = c.id + (enemy ? 'e' : 'a') + (boss ? 'b' : '');
@@ -84,6 +103,15 @@ function artSvg(c, enemy, boss) {
   const p = dk
     ? { c: `hsl(${(hue + 160) % 360},45%,42%)`, d: `hsl(${(hue + 160) % 360},45%,20%)`, l: `hsl(${(hue + 160) % 360},50%,65%)`, a: `hsl(${(hue + 200) % 360},60%,60%)` }
     : { c: `hsl(${hue},62%,${58 + (lv > 1 ? 4 : 0)}%)`, d: `hsl(${hue},58%,30%)`, l: `hsl(${hue},80%,82%)`, a: `hsl(${(hue + 50) % 360},75%,62%)` };
+  if (!enemy) {
+    const gold = '#ffd800';
+    let deco = '';
+    if (lv >= 1) deco += dots([[10, 22], [90, 20]], 3.5, gold);
+    if (lv >= 2) deco += `<path d="M34 14L38 2L50 9L62 2L66 14Z" fill="${gold}" stroke="#222" stroke-width="2.5" stroke-linejoin="round"/>`;
+    if (lv >= 3) deco += `<circle cx="50" cy="50" r="47" fill="none" stroke="${p.a}" stroke-width="3" stroke-dasharray="6 6"/>`;
+    const gs = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">${girlBody(hue, lv, Math.floor(hue / 7) % 3)}${deco}</svg>`;
+    return artCache[key] = gs;
+  }
   const d = (DESIGNS[fam] || DESIGNS['アメーバ'])(p, lv);
   let face = '';
   const [ex, ey, sp] = d.e;
