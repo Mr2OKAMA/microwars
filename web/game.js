@@ -16,7 +16,7 @@ function persist() { localStorage.setItem(KEY, JSON.stringify(save)); }
 function color(s, h0 = 0) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) % 360; return `hsl(${(h + h0) % 360},65%,45%)`; }
 function stat(id, k) { return Math.round(A[id][k] * (1 + 0.08 * (save.owned[id] - 1))); }
 function lvCost(id) { return 30 + save.owned[id] * 20; }
-function icon(c, enemy) { return `<div class="icon" style="background:${color(c.family, enemy ? 180 : 0)}">${c.name[0]}</div>`; }
+function icon(c, enemy) { return `<div class="icon">${artSvg(c, enemy)}</div>`; }
 function card(c, extra = '', cls = '', click = '') {
   return `<div class="card ${cls}" ${click ? `onclick="${click}"` : ''}>${extra}${icon(c)}${c.name}</div>`;
 }
@@ -234,9 +234,9 @@ function draw() {
   g.textAlign = 'center';
   for (const u of B.units) {
     const y = GY - u.r + (u.side === 'a' ? 0 : 0);
-    g.fillStyle = color(u.c.family, u.side === 'e' ? 180 : 0); g.beginPath(); g.arc(u.x, y, u.r, 0, 7); g.fill();
-    g.lineWidth = 3; g.strokeStyle = u.kind === 'boss' ? '#ffd800' : '#222'; g.stroke();
-    g.fillStyle = '#fff'; g.font = `bold ${Math.round(u.r)}px sans-serif`; g.fillText(u.c.name[0], u.x, y + u.r * 0.35);
+    const im = artImg(u.c, u.side === 'e', u.kind === 'boss');
+    if (im.complete && im.naturalWidth) g.drawImage(im, u.x - u.r * 1.3, y - u.r * 1.3 + u.r * 0.3, u.r * 2.6, u.r * 2.6);
+    else { g.fillStyle = color(u.c.family, u.side === 'e' ? 180 : 0); g.beginPath(); g.arc(u.x, y, u.r, 0, 7); g.fill(); }
     g.fillStyle = '#222'; g.fillRect(u.x - u.r, y - u.r - 9, u.r * 2, 5); g.fillStyle = u.side === 'a' ? '#4c4' : '#e55'; g.fillRect(u.x - u.r, y - u.r - 9, u.r * 2 * u.hp / u.max, 5);
   }
   B.fx = B.fx.filter(f => --f.t > 0);
